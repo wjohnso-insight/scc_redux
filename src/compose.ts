@@ -12,6 +12,12 @@ type Func<T extends any[], R> = (...a: T) => R
  */
 export default function compose(): <R>(a: R) => R
 
+
+/*
+#SCC
+  How are there more than one functions with the same name? - Seth Broweleit
+*/
+
 export default function compose<F extends Function>(f: F): F
 
 /* two functions */
