@@ -12,12 +12,6 @@ type Func<T extends any[], R> = (...a: T) => R
  */
 export default function compose(): <R>(a: R) => R
 
-
-/*
-#SCC
-  How are there more than one functions with the same name? - Seth Broweleit
-*/
-
 export default function compose<F extends Function>(f: F): F
 
 /* two functions */
@@ -50,18 +44,42 @@ export default function compose<R>(
 export default function compose<R>(...funcs: Function[]): (...args: any[]) => R
 
 export default function compose(...funcs: Function[]) {
+  // infer the argument type so it is usable in inference down the line
   if (funcs.length === 0) {
-    // infer the argument type so it is usable in inference down the line
     return <T>(arg: T) => arg
   }
-
   if (funcs.length === 1) {
     return funcs[0]
   }
-
   return funcs.reduce(
     (a, b) =>
       (...args: any) =>
         a(b(...args))
   )
 }
+
+/*
+  #SCC
+  How are there more than one functions with the same name? - Seth Broweleit https://twitter.com/getsetbro/status/1549592532727828480
+  "That's TS method overloading. One actual code function, many type signatures with different forms of the arguments." - Mark Erikson https://twitter.com/acemarke/status/1549622836926431232
+
+  So compose() seems to be a utility function that allows you to do this compose(f, g, h) when you would otherwise have needed to this (...args) => f(g(h(...args)))
+
+  In the test file you can see this example:
+
+  const a = (next) => (x) => next(x + 'a');
+  const b = (next) => (x) => next(x + 'b');
+  const c = (next) => (x) => next(x + 'c');
+  const final = (x) => x;
+  compose(a, b, c)(final)(''); //'abc'
+
+  When TS compiles this file it turns it into this JavaSript:
+  function compose(...funcs) {
+    if (funcs.length === 0) { return (arg) => arg; }
+    if (funcs.length === 1) { return funcs[0]; }
+    return funcs.reduce((a, b) => (...args) => a(b(...args)));
+  }
+
+  Which is just the last function in the file. So I still am not sure what the other 7 are for. Just documentation?
+   - Seth Broweleit
+*/
