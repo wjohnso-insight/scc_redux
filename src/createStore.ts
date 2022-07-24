@@ -39,6 +39,30 @@ import { kindOf } from './utils/kindOf'
  * @returns A Redux store that lets you read the state, dispatch actions
  * and subscribe to changes.
  */
+
+// 3 overloaded functions
+// 1st overload
+//     v--'defualt' allows createStore function to be called by different name when imported later 
+export default function createStore<
+  S, // generic of type PreloadedState found in the sotre.ts file and defined below (let currentState = preloadedState as S)
+  A extends Action, // generic that extends the action interface found in the action.ts file
+  Ext = {}, // generic store extension with a default value of an empty object
+  StateExt = never // generic state extension with a default value of never
+>(
+  reducer: Reducer<S, A>, // 1st (required) param of type Reducer, in all 3 overloads (see notes above from Redux authors)
+  enhancer?: StoreEnhancer<Ext, StateExt> // 1st (optional) param of type StoreEnhancer, in all 3 overloads (see notes above from Redux authors)
+): Store< // return type of Store, which is composed of the joining of ExtendedState & Ext types 
+    ExtendState<
+            S, 
+            StateExt
+        >, 
+        A, 
+        StateExt, 
+        Ext
+        > & // ampersand joins ExtendedState & Ext types
+    Ext
+
+// 2nd overload
 export default function createStore<
   S,
   A extends Action,
@@ -46,8 +70,11 @@ export default function createStore<
   StateExt = never
 >(
   reducer: Reducer<S, A>,
+  preloadedState?: PreloadedState<S>, // additional (optional) param of type PreloadedState (see notes above from Redux authors)
   enhancer?: StoreEnhancer<Ext, StateExt>
 ): Store<ExtendState<S, StateExt>, A, StateExt, Ext> & Ext
+
+// 3rd overload
 export default function createStore<
   S,
   A extends Action,
@@ -55,19 +82,11 @@ export default function createStore<
   StateExt = never
 >(
   reducer: Reducer<S, A>,
-  preloadedState?: PreloadedState<S>,
-  enhancer?: StoreEnhancer<Ext, StateExt>
-): Store<ExtendState<S, StateExt>, A, StateExt, Ext> & Ext
-export default function createStore<
-  S,
-  A extends Action,
-  Ext = {},
-  StateExt = never
->(
-  reducer: Reducer<S, A>,
-  preloadedState?: PreloadedState<S> | StoreEnhancer<Ext, StateExt>,
+  preloadedState?: PreloadedState<S> | StoreEnhancer<Ext, StateExt>, // additional (optional) param of type PreloadedState OR StoreEnhancer (see notes above from Redux authors)
   enhancer?: StoreEnhancer<Ext, StateExt>
 ): Store<ExtendState<S, StateExt>, A, StateExt, Ext> & Ext {
+  
+  // if multiple store enhancers are passed in, throw error
   if (
     (typeof preloadedState === 'function' && typeof enhancer === 'function') ||
     (typeof enhancer === 'function' && typeof arguments[3] === 'function')
@@ -79,11 +98,13 @@ export default function createStore<
     )
   }
 
+  // if state is an enhancer and enhancer is undefined, swap them?
   if (typeof preloadedState === 'function' && typeof enhancer === 'undefined') {
     enhancer = preloadedState as StoreEnhancer<Ext, StateExt>
     preloadedState = undefined
   }
 
+  // if enhancer is not undefined or a function, throw error
   if (typeof enhancer !== 'undefined') {
     if (typeof enhancer !== 'function') {
       throw new Error(
@@ -93,12 +114,19 @@ export default function createStore<
       )
     }
 
+    // if enhancer is not undefined and is a function, 
+    // return enhancer that calls createStore, 
+    // which returns enhancer, 
+    // that then passes in the reducer and preloadedState args in the second set of parentheses (i.e., the args for enhancer)
+    // I am guessing this is recursion to handle an unknown level of createStore or enhancer calls?
+    // either way, it is very confusing LOL
     return enhancer(createStore)(
       reducer,
       preloadedState as PreloadedState<S>
     ) as Store<ExtendState<S, StateExt>, A, StateExt, Ext> & Ext
   }
 
+  // if reducer is not a function, throw error
   if (typeof reducer !== 'function') {
     throw new Error(
       `Expected the root reducer to be a function. Instead, received: '${kindOf(
@@ -107,6 +135,7 @@ export default function createStore<
     )
   }
 
+  // LEFT OFF HERE...
   let currentReducer = reducer
   let currentState = preloadedState as S
   let currentListeners: (() => void)[] | null = []
