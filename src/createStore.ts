@@ -114,12 +114,14 @@ export default function createStore<
       )
     }
 
-    // if enhancer is not undefined and is a function, 
-    // return enhancer that calls createStore, 
-    // which returns enhancer, 
-    // that then passes in the reducer and preloadedState args in the second set of parentheses (i.e., the args for enhancer)
-    // I am guessing this is recursion to handle an unknown level of createStore or enhancer calls?
-    // either way, it is very confusing LOL
+    /** 
+     * if enhancer is not undefined and is a function, 
+     * return enhancer that calls createStore, 
+     * which returns enhancer, 
+     * that then passes in the reducer and preloadedState args in the second set of parentheses (i.e., the args for enhancer)
+     * I am guessing this is recursion to handle an unknown level of createStore or enhancer calls?
+     * either way, it is very confusing LOL 
+     */
     return enhancer(createStore)(
       reducer,
       preloadedState as PreloadedState<S>
@@ -135,13 +137,13 @@ export default function createStore<
     )
   }
 
-  // LEFT OFF HERE...
-  let currentReducer = reducer
-  let currentState = preloadedState as S
-  let currentListeners: (() => void)[] | null = []
-  let nextListeners = currentListeners
-  let isDispatching = false
+  let currentReducer = reducer // set currentReducer to reducer set above
+  let currentState = preloadedState as S // set currentState to preloadedState set above
+  let currentListeners: (() => void)[] | null = [] // set currentListeners to empty array
+  let nextListeners = currentListeners // set nextListeners to current listeners (empty array)
+  let isDispatching = false 
 
+  // love how many helpful comments like the one below are already in the code
   /**
    * This makes a shallow copy of currentListeners so we can use
    * nextListeners as a temporary list while dispatching.
@@ -161,7 +163,7 @@ export default function createStore<
    * @returns The current state tree of your application.
    */
   function getState(): S {
-    if (isDispatching) {
+    if (isDispatching) { // I love how clearly this reads, no extra explanation needed
       throw new Error(
         'You may not call store.getState() while the reducer is executing. ' +
           'The reducer has already received the state as an argument. ' +
@@ -195,7 +197,7 @@ export default function createStore<
    * @param listener A callback to be invoked on every dispatch.
    * @returns A function to remove this change listener.
    */
-  function subscribe(listener: () => void) {
+  function subscribe(listener: () => void) { // agaoin, I love how clearly this reads, no extra explanation needed
     if (typeof listener !== 'function') {
       throw new Error(
         `Expected the listener to be a function. Instead, received: '${kindOf(
@@ -215,7 +217,7 @@ export default function createStore<
 
     let isSubscribed = true
 
-    ensureCanMutateNextListeners()
+    ensureCanMutateNextListeners() // method defined above to make sure nextListeners can be updated
     nextListeners.push(listener)
 
     return function unsubscribe() {
@@ -223,7 +225,7 @@ export default function createStore<
         return
       }
 
-      if (isDispatching) {
+      if (isDispatching) { // more checks
         throw new Error(
           'You may not unsubscribe from a store listener while the reducer is executing. ' +
             'See https://redux.js.org/api/store#subscribelistener for more details.'
@@ -232,7 +234,7 @@ export default function createStore<
 
       isSubscribed = false
 
-      ensureCanMutateNextListeners()
+      ensureCanMutateNextListeners() // method defined above to make sure nextListeners can be updated
       const index = nextListeners.indexOf(listener)
       nextListeners.splice(index, 1)
       currentListeners = null
@@ -264,7 +266,7 @@ export default function createStore<
    * Note that, if you use a custom middleware, it may wrap `dispatch()` to
    * return something else (for example, a Promise you can await).
    */
-  function dispatch(action: A) {
+  function dispatch(action: A) { // contains a lot of error handling, which makes sense
     if (!isPlainObject(action)) {
       throw new Error(
         `Actions must be plain objects. Instead, the actual type was: '${kindOf(
@@ -364,7 +366,7 @@ export default function createStore<
           )
         }
 
-        function observeState() {
+        function observeState() { // I have not seen nested function definitions like this. in return statements, in other functions, nor both. interesting pattern.
           const observerAsObserver = observer as Observer<S>
           if (observerAsObserver.next) {
             observerAsObserver.next(getState())
