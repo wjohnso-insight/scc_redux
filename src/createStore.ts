@@ -251,6 +251,9 @@ export default function createStore<
     }
   }
 
+  /*
+		This is one of the most consequntial comments in the entire repository. This is basically the "how" in Redux. The ultra-declarative, immutable relationship, based on pure functions, that exists between `reducer` and `action` is the core concept behind what makes Redux tick. - @wijohnst-insight
+	*/
   /**
    * Dispatches an action. It is the only way to trigger a state change.
    *
@@ -278,6 +281,11 @@ export default function createStore<
    */
   function dispatch(action: A) {
     // contains a lot of error handling, which makes sense
+    /*
+			The `isPlainObject` utlity makes use of the `Object.getPrototypeOf()` method, which is not something I'd come across before. This method returns the value of the internal `Prototype` property of the calling object. 
+
+			https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/getPrototypeOf - @wijohnst-insight
+		*/
     if (!isPlainObject(action)) {
       throw new Error(
         `Actions must be plain objects. Instead, the actual type was: '${kindOf(
@@ -390,6 +398,9 @@ export default function createStore<
         return { unsubscribe }
       },
 
+      /*
+				Anybody have an idea of what's going on here? Not familiar with bracket syntax used in a function call? (If that's even what's happening here?) - @wijohnst-insigh
+			*/
       [$$observable]() {
         return this
       }
