@@ -137,10 +137,10 @@ export default function createStore<
     )
   }
 
-  let currentReducer = reducer // set currentReducer to reducer set above
-  let currentState = preloadedState as S // set currentState to preloadedState set above
-  let currentListeners: (() => void)[] | null = [] // set currentListeners to empty array
-  let nextListeners = currentListeners // set nextListeners to current listeners (empty array)
+  let currentReducer = reducer // define currentReducer as reducer set above
+  let currentState = preloadedState as S // define currentState as preloadedState set above
+  let currentListeners: (() => void)[] | null = [] // define currentListeners as empty array
+  let nextListeners = currentListeners // define nextListeners as current listeners (empty array)
   let isDispatching = false 
 
   // love how many helpful comments like the one below are already in the code
@@ -197,7 +197,7 @@ export default function createStore<
    * @param listener A callback to be invoked on every dispatch.
    * @returns A function to remove this change listener.
    */
-  function subscribe(listener: () => void) { // agaoin, I love how clearly this reads, no extra explanation needed
+  function subscribe(listener: () => void) { // again, I love how clearly this reads, no extra explanation needed
     if (typeof listener !== 'function') {
       throw new Error(
         `Expected the listener to be a function. Instead, received: '${kindOf(
