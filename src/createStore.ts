@@ -42,7 +42,7 @@ import { kindOf } from './utils/kindOf'
 
 // 3 overloaded functions
 // 1st overload
-//     v--'defualt' allows createStore function to be called by different name when imported later 
+//     v--'defualt' allows createStore function to be called by different name when imported later
 export default function createStore<
   S, // generic of type PreloadedState found in the sotre.ts file and defined below (let currentState = preloadedState as S)
   A extends Action, // generic that extends the action interface found in the action.ts file
@@ -51,16 +51,14 @@ export default function createStore<
 >(
   reducer: Reducer<S, A>, // 1st (required) param of type Reducer, in all 3 overloads (see notes above from Redux authors)
   enhancer?: StoreEnhancer<Ext, StateExt> // 1st (optional) param of type StoreEnhancer, in all 3 overloads (see notes above from Redux authors)
-): Store< // return type of Store, which is composed of the joining of ExtendedState & Ext types 
-    ExtendState<
-            S, 
-            StateExt
-        >, 
-        A, 
-        StateExt, 
-        Ext
-        > & // ampersand joins ExtendedState & Ext types
-    Ext
+): Store<
+  // return type of Store, which is composed of the joining of ExtendedState & Ext types
+  ExtendState<S, StateExt>,
+  A,
+  StateExt,
+  Ext
+> & // ampersand joins ExtendedState & Ext types
+  Ext
 
 // 2nd overload
 export default function createStore<
@@ -85,7 +83,6 @@ export default function createStore<
   preloadedState?: PreloadedState<S> | StoreEnhancer<Ext, StateExt>, // additional (optional) param of type PreloadedState OR StoreEnhancer (see notes above from Redux authors)
   enhancer?: StoreEnhancer<Ext, StateExt>
 ): Store<ExtendState<S, StateExt>, A, StateExt, Ext> & Ext {
-  
   // if multiple store enhancers are passed in, throw error
   if (
     (typeof preloadedState === 'function' && typeof enhancer === 'function') ||
@@ -108,19 +105,20 @@ export default function createStore<
   if (typeof enhancer !== 'undefined') {
     if (typeof enhancer !== 'function') {
       throw new Error(
+        // The `kindOf` utility is neat, especially the way it works in a production environment. See notes in `kindOf.ts`
         `Expected the enhancer to be a function. Instead, received: '${kindOf(
           enhancer
         )}'`
       )
     }
 
-    /** 
-     * if enhancer is not undefined and is a function, 
-     * return enhancer that calls createStore, 
-     * which returns enhancer, 
+    /**
+     * if enhancer is not undefined and is a function,
+     * return enhancer that calls createStore,
+     * which returns enhancer,
      * that then passes in the reducer and preloadedState args in the second set of parentheses (i.e., the args for enhancer)
      * I am guessing this is recursion to handle an unknown level of createStore or enhancer calls?
-     * either way, it is very confusing LOL 
+     * either way, it is very confusing LOL
      */
     return enhancer(createStore)(
       reducer,
@@ -163,7 +161,8 @@ export default function createStore<
    * @returns The current state tree of your application.
    */
   function getState(): S {
-    if (isDispatching) { // I love how clearly this reads, no extra explanation needed
+    if (isDispatching) {
+      // I love how clearly this reads, no extra explanation needed
       throw new Error(
         'You may not call store.getState() while the reducer is executing. ' +
           'The reducer has already received the state as an argument. ' +
@@ -207,6 +206,15 @@ export default function createStore<
     }
 
     if (isDispatching) {
+      /*
+				Any ideas why they prefer this kind of string concatination over template literals (``)? I'm sure there is a reason, just don't really know what it is. 
+
+				Dug into this a little. So template literals are syntactic sugar introduced in ES6, which means they aren't supported in older browsers (< IE 12). For a library like Redux, which is used across so many applications, you have to support really old browsers. So, they concat the string the old fashioned way to preseve compatibility. 
+
+				Here's a SO post about something similar:
+
+				https://stackoverflow.com/questions/48408863/creating-an-error-message-if-browser-does-not-support-es6-template-literals - @wijohnst-insight
+			*/
       throw new Error(
         'You may not call store.subscribe() while the reducer is executing. ' +
           'If you would like to be notified after the store has been updated, subscribe from a ' +
@@ -225,7 +233,8 @@ export default function createStore<
         return
       }
 
-      if (isDispatching) { // more checks
+      if (isDispatching) {
+        // more checks
         throw new Error(
           'You may not unsubscribe from a store listener while the reducer is executing. ' +
             'See https://redux.js.org/api/store#subscribelistener for more details.'
@@ -241,6 +250,9 @@ export default function createStore<
     }
   }
 
+  /*
+		This is one of the most consequntial comments in the entire repository. This is basically the "how" in Redux. The ultra-declarative, immutable relationship, based on pure functions, that exists between `reducer` and `action` is the core concept behind what makes Redux tick. - @wijohnst-insight
+	*/
   /**
    * Dispatches an action. It is the only way to trigger a state change.
    *
@@ -266,7 +278,13 @@ export default function createStore<
    * Note that, if you use a custom middleware, it may wrap `dispatch()` to
    * return something else (for example, a Promise you can await).
    */
-  function dispatch(action: A) { // contains a lot of error handling, which makes sense
+  function dispatch(action: A) {
+    // contains a lot of error handling, which makes sense
+    /*
+			The `isPlainObject` utlity makes use of the `Object.getPrototypeOf()` method, which is not something I'd come across before. This method returns the value of the internal `Prototype` property of the calling object. 
+
+			https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/getPrototypeOf - @wijohnst-insight
+		*/
     if (!isPlainObject(action)) {
       throw new Error(
         `Actions must be plain objects. Instead, the actual type was: '${kindOf(
@@ -366,7 +384,8 @@ export default function createStore<
           )
         }
 
-        function observeState() { // I have not seen nested function definitions like this. in return statements, in other functions, nor both. interesting pattern.
+        function observeState() {
+          // I have not seen nested function definitions like this. in return statements, in other functions, nor both. interesting pattern.
           const observerAsObserver = observer as Observer<S>
           if (observerAsObserver.next) {
             observerAsObserver.next(getState())
@@ -378,6 +397,9 @@ export default function createStore<
         return { unsubscribe }
       },
 
+      /*
+				Anybody have an idea of what's going on here? Not familiar with bracket syntax used in a function call? (If that's even what's happening here?) - @wijohnst-insigh
+			*/
       [$$observable]() {
         return this
       }
