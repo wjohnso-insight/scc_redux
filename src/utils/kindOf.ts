@@ -59,6 +59,13 @@ function isDate(val: any) {
   )
 }
 
+/**
+ * Accepts a variable and returns a string representing its primitive type.
+ * If called from a production environment the string is minified.
+ *
+ * @param {any} val
+ * @returns {string} typeOfVal
+ */
 export function kindOf(val: any) {
   let typeOfVal: string = typeof val
 
