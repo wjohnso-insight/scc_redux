@@ -1,3 +1,28 @@
+/*
+
+! #SCC
+
+  As it says in the docs about this file https://github.com/reduxjs/redux/blob/master/docs/api/combineReducers.md:
+  "With Redux, there is just one store, but combineReducers helps you keep the same logical division between reducers."
+
+	```js
+  	const rootReducer = combineReducers({currentUser: currentUserReducer, todoItems: todoItemsReducer})
+  	const store = createStore(rootReducer)
+  	console.log(store.getState()) // {currentUser: {...}, todoItems: {...}}
+	```
+
+  What sticks out to me from this file is the try catch block at line ~176. Try catch is not something I have used much.
+  The TRY block runs a functions that uses IFs to check if things are undefined, if they are it THROWS an error and then
+  in the CATCH block it stores the error in a variable. Then later if that variable is an error it throws it.
+  From the docs about THROW:
+  "Execution of the current function will stop (the statements after throw won't be executed),
+  and control will be passed to the first catch block in the call stack.
+  If no catch block exists among caller functions, the program will terminate."
+
+  Until now I have used return; to stop the function.
+
+  - Seth Broweleit
+*/
 import { AnyAction, Action } from './types/actions'
 import {
   ActionFromReducersMapObject,
@@ -148,6 +173,7 @@ export default function combineReducers(reducers: ReducersMapObject) {
   }
 
   let shapeAssertionError: unknown
+  // ! try/catch that @sbrowleit mentions
   try {
     assertReducerShape(finalReducers)
   } catch (e) {
@@ -199,26 +225,3 @@ export default function combineReducers(reducers: ReducersMapObject) {
     return hasChanged ? nextState : state
   }
 }
-
-/*
-#SCC
-
-  As it says in the docs about this file https://github.com/reduxjs/redux/blob/master/docs/api/combineReducers.md:
-  "With Redux, there is just one store, but combineReducers helps you keep the same logical division between reducers."
-
-  const rootReducer = combineReducers({currentUser: currentUserReducer, todoItems: todoItemsReducer})
-  const store = createStore(rootReducer)
-  console.log(store.getState()) // {currentUser: {...}, todoItems: {...}}
-
-  What sticks out to me from this file is the try catch block at line 151. Try catch is not something I have used much.
-  The TRY block runs a functions that uses IFs to check if things are undefined, if they are it THROWS an error and then
-  in the CATCH block it stores the error in a variable. Then later if that variable is an error it throws it.
-  From the docs about THROW:
-  "Execution of the current function will stop (the statements after throw won't be executed),
-  and control will be passed to the first catch block in the call stack.
-  If no catch block exists among caller functions, the program will terminate."
-
-  Until now I have used return; to stop the function.
-
-  - Seth Broweleit
-*/
