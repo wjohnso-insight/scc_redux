@@ -49,7 +49,7 @@ import { kindOf } from './utils/kindOf'
 *👇 'defualt' allows createStore function to be called by different name when imported later
 */
 export default function createStore<
-  // * generic of type PreloadedState found in the sotre.ts file and defined below (let currentState = preloadedState as S)
+  // * generic of type PreloadedState found in the store.ts file and defined below (let currentState = preloadedState as S)
   S,
   // * generic that extends the action interface found in the action.ts file
   A extends Action,
@@ -297,7 +297,7 @@ export default function createStore<
     //  contains a lot of error handling, which makes sense
     /*
 		*
-			The `isPlainObject` utlity makes use of the `Object.getPrototypeOf()` method, which is not something I'd come across before. This method returns the value of the internal `Prototype` property of the calling object. 
+			The `isPlainObject` utility makes use of the `Object.getPrototypeOf()` method, which is not something I'd come across before. This method returns the value of the internal `Prototype` property of the calling object. 
 
 			? https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/getPrototypeOf - @wijohnst-insight
 		*/
